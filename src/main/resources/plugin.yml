@@ -1,0 +1,4 @@
+name: LootBox
+version: '${project.version}'
+main: me.uyuyuy99.lootbox.LootBox
+api-version: 1.20
