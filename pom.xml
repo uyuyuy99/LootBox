@@ -143,14 +143,14 @@
             <version>1.20.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
-        <dependency>
-            <!-- Run "java -jar BuildTools.jar -rev 1.20.1 -remapped" with git bash but w/ 2 hyphens instead of 1 -->
-            <groupId>org.spigotmc</groupId>
-            <artifactId>spigot</artifactId>
-            <version>1.20.1-R0.1-SNAPSHOT</version>
-            <classifier>remapped-mojang</classifier>
-            <scope>provided</scope>
-        </dependency>
+<!--        <dependency>-->
+<!--            &lt;!&ndash; Run "java -jar BuildTools.jar -rev 1.20.1 -remapped" with git bash but w/ 2 hyphens instead of 1 &ndash;&gt;-->
+<!--            <groupId>org.spigotmc</groupId>-->
+<!--            <artifactId>spigot</artifactId>-->
+<!--            <version>1.20.1-R0.1-SNAPSHOT</version>-->
+<!--            <classifier>remapped-mojang</classifier>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>de.themoep</groupId>
             <artifactId>inventorygui</artifactId>
@@ -173,25 +173,6 @@
             <artifactId>lombok</artifactId>
             <version>RELEASE</version>
             <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>dev.sergiferry</groupId>
-            <artifactId>playernpc</artifactId>
-            <version>2023.4</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>net.citizensnpcs</groupId>
-            <artifactId>citizens-main</artifactId>
-            <version>2.0.33-SNAPSHOT</version>
-            <type>jar</type>
-            <scope>provided</scope>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
         <dependency>
             <groupId>com.comphenix.protocol</groupId>

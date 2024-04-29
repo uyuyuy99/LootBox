@@ -1,5 +1,6 @@
-package me.uyuyuy99.lootbox;
+package me.uyuyuy99.lootbox.util;
 
+import me.uyuyuy99.lootbox.LootBox;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -63,6 +64,17 @@ public class Util {
     }
     public static ItemStack getIconFromConfig(String key) {
         return getIconFromConfig(LootBox.plugin().getConfig(), key);
+    }
+
+    public static String getItemName(ItemStack item) {
+        if (item.hasItemMeta()) {
+            ItemMeta meta = item.getItemMeta();
+
+            if (meta.hasDisplayName()) {
+                return meta.getDisplayName();
+            }
+        }
+        return item.getType().name();
     }
 
 }
