@@ -1,0 +1,8 @@
+options:
+  # Number of seconds the envoy will last
+  timer: 300
+messages:
+  envoy-start: "&aLootBox envoy started!"
+  envoy-stop: "&cLootBox envoy stopped."
+  envoy-time-left: "&aThere is &7%time% &aleft until the envoy ends!"
+  no-envoy: "&cThe envoy is not running right now."

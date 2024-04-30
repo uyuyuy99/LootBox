@@ -64,10 +64,21 @@ public class Crate implements ConfigurationSerializable {
                 if (!active) return;
 
                 PacketContainer packet = event.getPacket();
+                final Player player = event.getPlayer();
 
                 if (packet.getIntegers().read(0) == entityId) {
                     plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> {
-                        location.getWorld().dropItem(location.clone().add(0, 1.5, 0), type.getRandomItem());
+                        CrateItem prize = type.getRandomItem();
+
+                        if (prize != null) {
+                            if (prize.isItem()) {
+                                location.getWorld().dropItem(location.clone().add(0, 1.5, 0), prize.getItem());
+                            } else {
+                                if (player != null && player.isOnline()) {
+                                    player.addPotionEffect(prize.getEffect());
+                                }
+                            }
+                        }
                     });
                     deactivate();
                 }
@@ -93,13 +104,14 @@ public class Crate implements ConfigurationSerializable {
     }
 
     public void deactivate() {
-        this.active = false;
-
-        for (Player p : location.getWorld().getPlayers()) {
-            PacketContainer packetDespawn = protocol.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
-            packetDespawn.getIntLists().write(0, Collections.singletonList(entityId));
-            protocol.sendServerPacket(p, packetDespawn);
+        if (active) {
+            for (Player p : location.getWorld().getPlayers()) {
+                PacketContainer packetDespawn = protocol.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
+                packetDespawn.getIntLists().write(0, Collections.singletonList(entityId));
+                protocol.sendServerPacket(p, packetDespawn);
+            }
         }
+        this.active = false;
     }
 
     // Sends all the necessary packets to initialize the fake entity

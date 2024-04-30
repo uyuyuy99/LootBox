@@ -2,6 +2,7 @@ package me.uyuyuy99.lootbox.crate;
 
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +23,7 @@ public class CrateType {
     }
 
     // Gets a random item from this crate, based on the rarities of the items
-    public ItemStack getRandomItem() {
+    public CrateItem getRandomItem() {
         List<Integer> chances = new ArrayList<>();
         int sum = 0;
 
@@ -34,10 +35,10 @@ public class CrateType {
         int choice = new Random().nextInt(sum);
         for (int i=0; i<chances.size(); i++) {
             if (choice < chances.get(i)) {
-                return items.get(i).getItem();
+                return items.get(i);
             }
         }
-        return new ItemStack(Material.AIR); // this shouldn't ever happen
+        return null; // this shouldn't ever happen
     }
 
     public String getId() {
@@ -63,6 +64,13 @@ public class CrateType {
     public void addItem(ItemStack item, int rarity) {
         CrateItem crateItem = new CrateItem();
         crateItem.setItem(item);
+        crateItem.setRarity(rarity);
+        items.add(crateItem);
+    }
+
+    public void addEffect(PotionEffect effect, int rarity) {
+        CrateItem crateItem = new CrateItem();
+        crateItem.setEffect(effect);
         crateItem.setRarity(rarity);
         items.add(crateItem);
     }

@@ -15,6 +15,7 @@ import org.bukkit.profile.PlayerProfile;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class Util {
 
@@ -75,6 +76,27 @@ public class Util {
             }
         }
         return item.getType().name();
+    }
+
+    public static String getReadableTimeFromTicks(int ticks) {
+        long millis = ticks * 50L;
+
+        if (millis >= TimeUnit.DAYS.toMillis(1)) {
+            long days = (millis / TimeUnit.DAYS.toMillis(1));
+            return days + "d";
+        }
+        if (millis >= TimeUnit.HOURS.toMillis(1)) {
+            long hours = (millis / TimeUnit.HOURS.toMillis(1));
+            return hours + "h";
+        }
+        else if (millis >= TimeUnit.MINUTES.toMillis(1)) {
+            long minutes = (millis / TimeUnit.MINUTES.toMillis(1));
+            return minutes + "m";
+        }
+        else {
+            long seconds = (millis / TimeUnit.SECONDS.toMillis(1));
+            return seconds + "s";
+        }
     }
 
 }

@@ -13,6 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +34,8 @@ public class CrateManager {
 
     private List<Crate> crateList = new ArrayList<>();
     private List<CrateType> typeList = new ArrayList<>();
+
+    private EnvoyRunnable envoyTask;
 
     public CrateManager(LootBox plugin) {
         this.plugin = plugin;
@@ -88,13 +91,31 @@ public class CrateManager {
                 .collect(Collectors.toList());
     }
 
+    public boolean isEnvoyRunning() {
+        return envoyTask != null;
+    }
+
+    public int getEnvoyTimeLeft() {
+        return (envoyTask != null) ? envoyTask.getTicksLeft() : 0;
+    }
+
     public void startEnvoy() {
+        if (envoyTask != null) {
+            envoyTask.cancel();
+        }
+        envoyTask = new EnvoyRunnable(20 * plugin.getConfig().getInt("options.timer"));
+        envoyTask.runTaskTimer(plugin, 0, 1);
+
         for (Crate crate : crateList) {
             crate.activate();
         }
     }
 
     public void stopEnvoy() {
+        if (envoyTask != null) {
+            envoyTask.cancel();
+            envoyTask = null;
+        }
         for (Crate crate : crateList) {
             crate.deactivate();
         }
@@ -217,6 +238,28 @@ public class CrateManager {
         public void onWorldChange(PlayerChangedWorldEvent event) {
             final Player player = event.getPlayer();
             plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> refreshCrates(player), 1);
+        }
+
+    }
+
+    private class EnvoyRunnable extends BukkitRunnable {
+
+        int ticks;
+
+        public EnvoyRunnable(int ticks) {
+            this.ticks = ticks;
+        }
+
+        public int getTicksLeft() {
+            return ticks;
+        }
+
+        @Override
+        public void run() {
+            if (ticks-- == 0) {
+                stopEnvoy();
+                cancel();
+            }
         }
 
     }
