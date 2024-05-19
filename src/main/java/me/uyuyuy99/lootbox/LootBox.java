@@ -66,6 +66,12 @@ public final class LootBox extends JavaPlugin {
                         .withPermission("lootbox.admin.addtype")
                         .executes((sender, args) -> {
                             String typeId = (String) args.get("type");
+
+                            if (!typeId.matches("^[a-zA-Z0-9\\-]*$")) {
+                                sender.sendMessage(CC.RED + "The type identifier must use only letters, numbers, or hypens (-)");
+                                return;
+                            }
+
                             CrateType crateType = new CrateType(typeId);
                             Optional<Object> optHeadUrl = args.getOptional("headUrl");
 
