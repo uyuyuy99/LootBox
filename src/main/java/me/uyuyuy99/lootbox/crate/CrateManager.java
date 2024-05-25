@@ -1,7 +1,6 @@
 package me.uyuyuy99.lootbox.crate;
 
 import dev.jorel.commandapi.arguments.Argument;
-import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.CustomArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
 import me.uyuyuy99.lootbox.LootBox;
@@ -13,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
@@ -240,6 +240,12 @@ public class CrateManager {
             plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> refreshCrates(player), 1);
         }
 
+        @EventHandler
+        public void onRespawn(PlayerRespawnEvent event) {
+            final Player player = event.getPlayer();
+            plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, () -> refreshCrates(player), 1);
+        }
+
     }
 
     private class EnvoyRunnable extends BukkitRunnable {
@@ -265,18 +271,16 @@ public class CrateManager {
     }
 
     // Autofill suggestions for commands (lists the available crate types)
-    public Argument<CrateType> cmdArgType(String nodeName) {
-        return new CustomArgument<>(new StringArgument(nodeName), info -> {
-            CrateType crateType = getType(info.input());
+    public Argument cmdArgType(String nodeName) {
+        return new CustomArgument<CrateType>(nodeName, info -> {
+            CrateType crateType = getType(info);
 
             if (crateType == null) {
-                throw CustomArgument.CustomArgumentException.fromMessageBuilder(new CustomArgument.MessageBuilder("Unknown crate type: ").appendArgInput());
+                throw new CustomArgument.CustomArgumentException("Unknown crate type: " + info);
             } else {
                 return crateType;
             }
-        }).replaceSuggestions(ArgumentSuggestions.strings(info ->
-                typeList.stream().map(CrateType::getId).toArray(String[]::new)
-        ));
+        });
     }
 
 }

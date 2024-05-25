@@ -30,17 +30,17 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.2.4</version>
                 <configuration>
                     <relocations>
                         <relocation>
                             <pattern>de.themoep</pattern>
                             <shadedPattern>me.uyuyuy99.lootbox.libs</shadedPattern>
                         </relocation>
-                        <relocation>
-                            <pattern>dev.jorel.commandapi</pattern>
-                            <shadedPattern>me.uyuyuy99.lootbox.commandapi</shadedPattern>
-                        </relocation>
+<!--                        <relocation>-->
+<!--                            <pattern>dev.jorel.commandapi</pattern>-->
+<!--                            <shadedPattern>me.uyuyuy99.lootbox.commandapi</shadedPattern>-->
+<!--                        </relocation>-->
 <!--                        <relocation>-->
 <!--                            <pattern>com.comphenix.packetwrapper</pattern>-->
 <!--                            <shadedPattern>me.uyuyuy99.lootbox.packetwrapper</shadedPattern>-->
@@ -64,7 +64,7 @@
                 <artifactId>maven-jar-plugin</artifactId>
                 <version>3.3.0</version>
                 <configuration>
-                    <outputDirectory>${user.home}/Desktop/1.20 Test Server/plugins</outputDirectory>
+                    <outputDirectory>${user.home}/Desktop/1.15 Test Server/plugins</outputDirectory>
                 </configuration>
             </plugin>
             <plugin>
@@ -127,10 +127,6 @@
             <url>https://repo.dmulloy2.net/repository/public/</url>
         </repository>
         <repository>
-            <id>citizens-repo</id>
-            <url>https://maven.citizensnpcs.co/repo</url>
-        </repository>
-        <repository>
             <id>lukasalt-repo</id>
             <url>https://repo.lukasa.lt/repository/maven-public/</url>
         </repository>
@@ -140,8 +136,15 @@
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.20.1-R0.1-SNAPSHOT</version>
+            <version>1.15.1-R0.1-SNAPSHOT</version>
             <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.spigotmc</groupId>
+            <artifactId>spigot</artifactId>
+            <version>1.15</version>
+            <systemPath>${basedir}/libs/spigot-1.15.jar</systemPath>
+            <scope>system</scope>
         </dependency>
 <!--        <dependency>-->
 <!--            &lt;!&ndash; Run "java -jar BuildTools.jar -rev 1.20.1 -remapped" with git bash but w/ 2 hyphens instead of 1 &ndash;&gt;-->
@@ -160,14 +163,15 @@
         <dependency>
             <groupId>dev.jorel</groupId>
             <artifactId>commandapi-bukkit-core</artifactId>
-            <version>9.3.0</version>
-            <scope>provided</scope>
+            <version>5.12</version>
+            <systemPath>${basedir}/libs/CommandAPI-5.12.jar</systemPath>
+            <scope>system</scope>
         </dependency>
-        <dependency>
-            <groupId>dev.jorel</groupId>
-            <artifactId>commandapi-bukkit-shade</artifactId>
-            <version>9.3.0</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>dev.jorel</groupId>-->
+<!--            <artifactId>commandapi-bukkit-shade</artifactId>-->
+<!--            <version>9.3.0</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
@@ -177,7 +181,7 @@
         <dependency>
             <groupId>com.comphenix.protocol</groupId>
             <artifactId>ProtocolLib</artifactId>
-            <version>5.0.0-SNAPSHOT</version>
+            <version>5.2.0-SNAPSHOT</version>
             <scope>provided</scope>
         </dependency>
 <!--        <dependency>-->

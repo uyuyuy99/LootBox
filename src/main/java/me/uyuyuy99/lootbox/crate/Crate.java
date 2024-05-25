@@ -7,7 +7,8 @@ import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.events.PacketEvent;
-import com.comphenix.protocol.wrappers.*;
+import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.comphenix.protocol.wrappers.WrappedDataWatcher;
 import me.uyuyuy99.lootbox.LootBox;
 import me.uyuyuy99.lootbox.util.Util;
 import org.bukkit.Location;
@@ -17,9 +18,11 @@ import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 public class Crate implements ConfigurationSerializable {
 
@@ -43,10 +46,12 @@ public class Crate implements ConfigurationSerializable {
             @Override
             public void run() {
                 if (active) {
-                    PacketContainer packetRotate = protocol.createPacket(PacketType.Play.Server.ENTITY_HEAD_ROTATION);
+                    PacketContainer packetRotate = protocol.createPacket(PacketType.Play.Server.ENTITY_LOOK);
 
                     packetRotate.getIntegers().write(0, entityId);
                     packetRotate.getBytes().write(0, (byte) (angle++ % 256));
+                    packetRotate.getBytes().write(1, (byte) 0);
+                    packetRotate.getBooleans().write(0, true);
 
                     for (Player p : location.getWorld().getPlayers()) {
                         protocol.sendServerPacket(p, packetRotate);
@@ -107,7 +112,7 @@ public class Crate implements ConfigurationSerializable {
         if (active) {
             for (Player p : location.getWorld().getPlayers()) {
                 PacketContainer packetDespawn = protocol.createPacket(PacketType.Play.Server.ENTITY_DESTROY);
-                packetDespawn.getIntLists().write(0, Collections.singletonList(entityId));
+                packetDespawn.getIntegerArrays().write(0, new int[] { entityId });
                 protocol.sendServerPacket(p, packetDespawn);
             }
         }
@@ -127,7 +132,7 @@ public class Crate implements ConfigurationSerializable {
 
         packetSpawn.getIntegers().write(0, entityId);
         packetSpawn.getUUIDs().write(0, entityUuid);
-        packetSpawn.getEntityTypeModifier().write(0, EntityType.ZOMBIE);
+        packetSpawn.getEntityTypeModifier().write(0, EntityType.ARMOR_STAND);
         packetSpawn.getDoubles().write(0, location.getX());
         packetSpawn.getDoubles().write(1, location.getY());
         packetSpawn.getDoubles().write(2, location.getZ());
@@ -143,7 +148,8 @@ public class Crate implements ConfigurationSerializable {
         Util.setHeadTexture(headItem, type.getHeadUrl());
 
         packetEquip.getIntegers().write(0, entityId);
-        packetEquip.getSlotStackPairLists().write(0, Collections.singletonList(new Pair<>(EnumWrappers.ItemSlot.HEAD, headItem)));
+        packetEquip.getItemSlots().write(0, EnumWrappers.ItemSlot.HEAD);
+        packetEquip.getItemModifier().write(0, headItem);
 
         protocol.sendServerPacket(player, packetEquip);
     }
@@ -152,14 +158,20 @@ public class Crate implements ConfigurationSerializable {
     public void sendInvisPacket(Player player) {
         PacketContainer packetInvis = protocol.createPacket(PacketType.Play.Server.ENTITY_METADATA);
 
-        List<WrappedDataValue> dataVals = new ArrayList<>();
-        dataVals.add(new WrappedDataValue(0, WrappedDataWatcher.Registry.get(Byte.class), (byte) 0x20));
-        dataVals.add(new WrappedDataValue(2,
-                WrappedDataWatcher.Registry.getChatComponentSerializer(true),
-                Optional.of(WrappedChatComponent.fromText("Loot Box").getHandle())));
-        dataVals.add(new WrappedDataValue(10, WrappedDataWatcher.Registry.get(Boolean.class), false));
         packetInvis.getIntegers().write(0, entityId);
-        packetInvis.getDataValueCollectionModifier().write(0, dataVals);
+        WrappedDataWatcher watcher = new WrappedDataWatcher();
+        WrappedDataWatcher.Serializer serializer = WrappedDataWatcher.Registry.get(Byte.class);
+        watcher.setObject(0, serializer, (byte) 0x20);
+        packetInvis.getWatchableCollectionModifier().write(0, watcher.getWatchableObjects());
+
+//        List<WrappedDataValue> dataVals = new ArrayList<>();
+//        dataVals.add(new WrappedDataValue(0, WrappedDataWatcher.Registry.get(Byte.class), (byte) 0x20));
+//        dataVals.add(new WrappedDataValue(2,
+//                WrappedDataWatcher.Registry.getChatComponentSerializer(true),
+//                Optional.of(WrappedChatComponent.fromText("Loot Box").getHandle())));
+//        dataVals.add(new WrappedDataValue(10, WrappedDataWatcher.Registry.get(Boolean.class), false));
+//        packetInvis.getIntegers().write(0, entityId);
+//        packetInvis.getDataValueCollectionModifier().write(0, dataVals);
 
         protocol.sendServerPacket(player, packetInvis);
     }
@@ -192,7 +204,6 @@ public class Crate implements ConfigurationSerializable {
         this.entityUuid = entityUuid;
     }
 
-    @NotNull
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> data = new HashMap<>();

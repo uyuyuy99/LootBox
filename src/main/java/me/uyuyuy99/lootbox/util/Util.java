@@ -1,19 +1,19 @@
 package me.uyuyuy99.lootbox.util;
 
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import me.uyuyuy99.lootbox.LootBox;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.craftbukkit.libs.org.apache.commons.codec.binary.Base64;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.profile.PlayerProfile;
 
-import java.net.MalformedURLException;
-import java.net.URI;
+import java.lang.reflect.Field;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -27,20 +27,24 @@ public class Util {
     }
 
     public static void setHeadTexture(ItemStack head, String url) {
-        if (url.isEmpty()) {
+        if(url.isEmpty()) {
             return;
         }
 
         SkullMeta headMeta = (SkullMeta) head.getItemMeta();
-        PlayerProfile profile = Bukkit.createPlayerProfile(UUID.randomUUID());
+        GameProfile profile = new GameProfile(UUID.randomUUID(), null);
+        byte[] encodedData = Base64.encodeBase64(String.format("{textures:{SKIN:{url:\"%s\"}}}", "http://textures.minecraft.net/texture/" + url).getBytes());
+        profile.getProperties().put("textures", new Property("textures", new String(encodedData)));
 
+        Field profileField;
         try {
-            profile.getTextures().setSkin(URI.create("http://textures.minecraft.net/texture/" + url).toURL());
-        } catch (MalformedURLException e) {
-            e.printStackTrace();
+            profileField = headMeta.getClass().getDeclaredField("profile");
+            profileField.setAccessible(true);
+            profileField.set(headMeta, profile);
+        } catch (NoSuchFieldException | IllegalArgumentException | IllegalAccessException e1) {
+            e1.printStackTrace();
         }
 
-        headMeta.setOwnerProfile(profile);
         head.setItemMeta(headMeta);
     }
 

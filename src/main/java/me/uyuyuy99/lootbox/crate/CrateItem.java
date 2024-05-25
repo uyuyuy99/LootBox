@@ -4,7 +4,6 @@ import lombok.Data;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,7 +21,6 @@ public class CrateItem implements ConfigurationSerializable {
         return item != null;
     }
 
-    @NotNull
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> data = new HashMap<>();

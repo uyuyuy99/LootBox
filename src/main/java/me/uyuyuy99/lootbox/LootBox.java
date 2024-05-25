@@ -1,8 +1,13 @@
 package me.uyuyuy99.lootbox;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.EnumWrappers;
 import dev.jorel.commandapi.CommandAPI;
-import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.CommandAPIConfig;
 import dev.jorel.commandapi.arguments.IntegerArgument;
 import dev.jorel.commandapi.arguments.PotionEffectArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
@@ -13,8 +18,12 @@ import me.uyuyuy99.lootbox.crate.CrateManager;
 import me.uyuyuy99.lootbox.crate.CrateType;
 import me.uyuyuy99.lootbox.util.CC;
 import me.uyuyuy99.lootbox.util.Util;
+import net.minecraft.server.v1_15_R1.EntityTypes;
 import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -37,7 +46,7 @@ public final class LootBox extends JavaPlugin {
 
     @Override
     public void onLoad() {
-        CommandAPI.onLoad(new CommandAPIBukkitConfig(this));
+        CommandAPI.onLoad(new CommandAPIConfig());
     }
 
     @Override
@@ -49,7 +58,7 @@ public final class LootBox extends JavaPlugin {
 
         saveDefaultConfig();
 
-        new CommandAPICommand("lootbox")
+        new CommandAPICommand("lb")
                 .withSubcommand(new CommandAPICommand("reload")
                         .withPermission("lootbox.admin.reload")
                         .executes((sender, args) -> {
@@ -62,38 +71,22 @@ public final class LootBox extends JavaPlugin {
                 )
                 .withSubcommand(new CommandAPICommand("addtype")
                         .withArguments(new StringArgument("type"))
-                        .withOptionalArguments(new StringArgument("headUrl"))
                         .withPermission("lootbox.admin.addtype")
-                        .executes((sender, args) -> {
-                            String typeId = (String) args.get("type");
-
-                            if (!typeId.matches("^[a-zA-Z0-9\\-]*$")) {
-                                sender.sendMessage(CC.RED + "The type identifier must use only letters, numbers, or hypens (-)");
-                                return;
-                            }
-
-                            CrateType crateType = new CrateType(typeId);
-                            Optional<Object> optHeadUrl = args.getOptional("headUrl");
-
-                            if (optHeadUrl.isPresent()) {
-                                String headUrl = (String) optHeadUrl.get();
-                                crateType.setHeadUrl(headUrl);
-                            }
-
-                            if (crates.addType(crateType)) {
-                                sender.sendMessage(CC.GREEN + "Added crate type " + CC.GRAY + typeId + CC.GREEN + "!");
-                            } else {
-                                sender.sendMessage(CC.RED + "Crate type " + CC.GRAY + typeId + CC.RED + " already exists!");
-                            }
-                        })
+                        .executes(this::runAddTypeCommand)
+                )
+                .withSubcommand(new CommandAPICommand("addtype")
+                        .withArguments(new StringArgument("type"))
+                        .withArguments(new StringArgument("headUrl"))
+                        .withPermission("lootbox.admin.addtype")
+                        .executes(this::runAddTypeCommand)
                 )
                 .withSubcommand(new CommandAPICommand("sethead")
                         .withArguments(crates.cmdArgType("type"))
                         .withArguments(new StringArgument("headUrl"))
                         .withPermission("lootbox.admin.sethead")
                         .executes((sender, args) -> {
-                            CrateType type = (CrateType) args.get("type");
-                            String headUrl = (String) args.get("headUrl");
+                            CrateType type = (CrateType) args[0];
+                            String headUrl = (String) args[1];
 
                             type.setHeadUrl(headUrl);
                             crates.save();
@@ -111,8 +104,8 @@ public final class LootBox extends JavaPlugin {
                         .withArguments(new IntegerArgument("rarity", 1, 1000))
                         .withPermission("lootbox.admin.additem")
                         .executesPlayer((player, args) -> {
-                            CrateType type = (CrateType) args.get("type");
-                            int rarity = (int) args.get("rarity");
+                            CrateType type = (CrateType) args[0];
+                            int rarity = (int) args[1];
                             ItemStack item = player.getInventory().getItemInMainHand();
 
                             type.addItem(item, rarity);
@@ -131,11 +124,11 @@ public final class LootBox extends JavaPlugin {
                         .withArguments(new IntegerArgument("amplifier"))
                         .withPermission("lootbox.admin.addeffect")
                         .executesPlayer((player, args) -> {
-                            CrateType type = (CrateType) args.get("type");
-                            int rarity = (int) args.get("rarity");
-                            PotionEffectType effect = (PotionEffectType) args.get("potion");
-                            int duration = (int) args.get("duration");
-                            int amplifier = (int) args.get("amplifier");
+                            CrateType type = (CrateType) args[0];
+                            int rarity = (int) args[1];
+                            PotionEffectType effect = (PotionEffectType) args[2];
+                            int duration = (int) args[3];
+                            int amplifier = (int) args[4];
 
                             type.addEffect(new PotionEffect(effect, duration, amplifier), rarity);
                             crates.save();
@@ -150,7 +143,7 @@ public final class LootBox extends JavaPlugin {
                         .withArguments(crates.cmdArgType("type"))
                         .withPermission("lootbox.admin.addlocation")
                         .executesPlayer((player, args) -> {
-                            CrateType type = (CrateType) args.get("type");
+                            CrateType type = (CrateType) args[0];
                             Location loc = player.getLocation();
 
                             crates.addCrate(new Crate(type, loc));
@@ -202,6 +195,28 @@ public final class LootBox extends JavaPlugin {
 
     public CrateManager crates() {
         return crates;
+    }
+
+    private void runAddTypeCommand(CommandSender sender, Object[] args) {
+        String typeId = (String) args[0];
+
+        if (!typeId.matches("^[a-zA-Z0-9\\-]*$")) {
+            sender.sendMessage(CC.RED + "The type identifier must use only letters, numbers, or hypens (-)");
+            return;
+        }
+
+        CrateType crateType = new CrateType(typeId);
+
+        if (args.length > 1) {
+            String headUrl = (String) args[1];
+            crateType.setHeadUrl(headUrl);
+        }
+
+        if (crates.addType(crateType)) {
+            sender.sendMessage(CC.GREEN + "Added crate type " + CC.GRAY + typeId + CC.GREEN + "!");
+        } else {
+            sender.sendMessage(CC.RED + "Crate type " + CC.GRAY + typeId + CC.RED + " already exists!");
+        }
     }
 
 }
